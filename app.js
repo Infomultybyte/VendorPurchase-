@@ -1,4 +1,4 @@
-const API_URL = localStorage.getItem('vendorPurchaseApiUrl') || '';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxc49T5iqv7V5XvZZciOyaW6a4_CGhjy6hjuxVwHehE8bOX8SGlTL-RJnbC4xpafWWx/exec';
 const app = document.getElementById('app');
 const state = { user:null, products:[], batches:[], remarks:{}, filter:'', loading:false };
 
@@ -10,10 +10,11 @@ function productKey(p){ return p['SKU_ID']||p.sku||p.SKU||p['Product SKU']||p['P
 function token(){ return localStorage.getItem('vendorPurchaseSession')||''; }
 
 async function api(action,payload={}){
-  if(!API_URL) throw new Error('Apps Script URL not configured. Set vendorPurchaseApiUrl in localStorage.');
   const body={action,...payload,token:payload.token||token(),sessionToken:payload.sessionToken||token()};
   const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
-  const data=await res.json(); if(!data.success) throw new Error(data.message||data.error||'Request failed'); return data;
+  let data;
+  try{ data=await res.json(); }catch{ throw new Error(`Backend response error (${res.status}). Check the Apps Script deployment and access settings.`); }
+  if(!data.success) throw new Error(data.message||data.error||'Request failed'); return data;
 }
 
 function renderLogin(){
